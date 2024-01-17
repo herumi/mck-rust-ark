@@ -1,9 +1,10 @@
 [package]
 name = "mcl_ark"
 version = "0.1.0"
+authors = ["MITSUNARI Shigeo <herumi@nifty.com>"]
+description = "conversion functions between mcl-rust and ark"
+license = "BSD-3-Clause OR MIT OR Apache-2.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 ark-bls12-381 = "0.4.0"

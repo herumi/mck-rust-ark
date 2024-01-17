@@ -4,47 +4,11 @@ use ark_ec::*;
 use ark_ff::*;
 use ark_std::*;
 use mcl::*;
+use mcl_ark::*;
 use mcl_rust as mcl;
 
-fn to_ptr_fp(x: &ark_bls12_381::Fq) -> *const mcl::Fp {
-    let p: *const _ = x;
-    let yp = p as *const mcl::Fp;
-    yp
-}
-
-fn to_fp(x: &ark_bls12_381::Fq) -> mcl::Fp {
-    unsafe { (*to_ptr_fp(&x)).clone() }
-}
-
-fn to_ptr_fr(x: &ark_bls12_381::Fr) -> *const mcl::Fr {
-    let p: *const _ = x;
-    let yp = p as *const mcl::Fr;
-    yp
-}
-
-fn to_fr(x: &ark_bls12_381::Fr) -> mcl::Fr {
-    unsafe { (*to_ptr_fr(&x)).clone() }
-}
-
-fn to_g1(p: &ark_bls12_381::G1Affine) -> mcl::G1 {
-    unsafe {
-        let mut ret = mcl::G1::uninit();
-        ret.x = to_fp(&p.x);
-        ret.y = to_fp(&p.y);
-        ret.z.set_int(1);
-        ret
-    }
-}
-
-fn mod_to_fr(x: &ark_ff::biginteger::BigInteger256) -> mcl::Fr {
-    unsafe {
-        let mut ret = mcl::Fr::uninit();
-        ret.set_little_endian_mod(&x.to_bytes_le());
-        ret
-    }
-}
-
-fn main() {
+#[test]
+fn test_main() {
     mcl::init(CurveType::BLS12_381);
 
     let mut rng = ark_std::test_rng();
@@ -92,18 +56,4 @@ fn main() {
         let y = mod_to_fr(&x);
         println!("y={}\n", y.get_str(16));
     }
-    /*
-        let num_points = 2;
-        let mut rng = ark_std::test_rng();
-        let mut points: Vec<_> = Vec::new();
-        let mut scalars: Vec<_> = Vec::new();
-        for _ in 0..num_points {
-            points.push(G1Affine::from(<G1Affine as AffineCurve>::Projective::rand(
-                &mut rng,
-            )));
-            scalars.push(<G1Affine as AffineCurve>::ScalarField::rand(&mut rng).into_repr());
-        }
-
-        verify_correctness(&points, &scalars, 14);
-    */
 }
