@@ -331,16 +331,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13e3bf6590cbc649f4d1a3eefc9d5d6eb746f5200ffb04e5e142700b8faa56e7"
 
 [[package]]
-name = "mcl_rust"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9280ba3036f64d96a5bce117bda4806813129ffb6eb020fbafac283aa347c226"
-dependencies = [
- "cc",
-]
-
-[[package]]
-name = "mcl_rust_ark"
+name = "mcl_ark"
 version = "0.1.0"
 dependencies = [
  "ark-bls12-381 0.4.0",
@@ -350,6 +341,15 @@ dependencies = [
  "ark-std 0.4.0",
  "mcl_rust",
  "num-bigint",
+]
+
+[[package]]
+name = "mcl_rust"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9280ba3036f64d96a5bce117bda4806813129ffb6eb020fbafac283aa347c226"
+dependencies = [
+ "cc",
 ]
 
 [[package]]

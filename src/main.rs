@@ -9,27 +9,40 @@ use mcl_rust as mcl;
 fn to_ptr_fp(x: &ark_bls12_381::Fq) -> *const mcl::Fp {
     let p: *const _ = x;
     let yp = p as *const mcl::Fp;
-    return yp;
+    yp
+}
+
+fn to_fp(x: &ark_bls12_381::Fq) -> mcl::Fp {
+    unsafe { (*to_ptr_fp(&x)).clone() }
 }
 
 fn to_ptr_fr(x: &ark_bls12_381::Fr) -> *const mcl::Fr {
     let p: *const _ = x;
     let yp = p as *const mcl::Fr;
-    return yp;
+    yp
+}
+
+fn to_fr(x: &ark_bls12_381::Fr) -> mcl::Fr {
+    unsafe { (*to_ptr_fr(&x)).clone() }
 }
 
 fn to_g1(p: &ark_bls12_381::G1Affine) -> mcl::G1 {
     unsafe {
         let mut ret = mcl::G1::uninit();
-        let px = to_ptr_fp(&p.x);
-        let py = to_ptr_fp(&p.y);
-        ret.x = (*px).clone();
-        ret.y = (*py).clone();
+        ret.x = to_fp(&p.x);
+        ret.y = to_fp(&p.y);
         ret.z.set_int(1);
-        return ret;
+        ret
     }
 }
 
+fn mod_to_fr(x: &ark_ff::biginteger::BigInteger256) -> mcl::Fr {
+    unsafe {
+        let mut ret = mcl::Fr::uninit();
+        ret.set_little_endian_mod(&x.to_bytes_le());
+        ret
+    }
+}
 
 fn main() {
     mcl::init(CurveType::BLS12_381);
@@ -46,10 +59,7 @@ fn main() {
     println!("xx={}\n", xx.get_str(10));
 
     {
-        let yp = to_ptr_fp(&a.x);
-        unsafe {
-            println!("yy={}\n", (*yp).get_str(10));
-        }
+        println!("y={}\n", to_fp(&a.x).get_str(10));
         let g = to_g1(&a);
         println!("g={}\n", g.get_str(10));
     }
@@ -60,36 +70,28 @@ fn main() {
         let s1 = Fr::rand(&mut rng);
         let s2 = Fr::rand(&mut rng);
         println!("s1={}\n", s1);
-        unsafe {
-            println!("mcl s1={}\n", (*to_ptr_fr(&s1)).get_str(10));
-        }
+        println!("mcl s1={}\n", to_fr(&s1).get_str(10));
         println!("s2={}\n", s2);
         let r = G1Projective::msm(&[a, b], &[s1, s2]).unwrap();
         println!("rr={}\n", to_g1(&r.into_affine()).get_str(10));
 
         let mut xs: Vec<_> = Vec::new();
         let mut ys: Vec<_> = Vec::new();
-        xs.resize_with(2, Default::default);
-        ys.resize_with(2, Default::default);
-        unsafe {
-            xs[0] = to_g1(&a);
-            xs[1] = to_g1(&b);
-            ys[0] = (*to_ptr_fr(&s1)).clone();
-            ys[1] = (*to_ptr_fr(&s2)).clone();
-        }
+        xs.push(to_g1(&a));
+        xs.push(to_g1(&b));
+        ys.push(to_fr(&s1));
+        ys.push(to_fr(&s2));
         let mut g1 = unsafe { <mcl::G1>::uninit() };
         mcl::G1::mul_vec(&mut g1, &xs, &ys);
         println!("g1={}\n", g1.get_str(10));
     }
 
-	{
-		let x = ark_ff::biginteger::BigInteger256::new([1,2,3,0xffffffffffffffff]);
-		println!("x={}\n", x);
-		let mut y:mcl::Fr = mcl::Fr::zero();
-		y.set_little_endian_mod(&x.to_bytes_le());
-		println!("m={}\n", y.get_str(10));
-		println!("m={}\n", y.get_str(16));
-	}
+    {
+        let x = ark_ff::biginteger::BigInteger256::new([1, 2, 3, 0xffffffffffffffff]);
+        println!("x={}\n", x);
+        let y = mod_to_fr(&x);
+        println!("y={}\n", y.get_str(16));
+    }
     /*
         let num_points = 2;
         let mut rng = ark_std::test_rng();
